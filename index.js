@@ -55,3 +55,96 @@ types = types.filter((item)=>{
 }).sort((itemA, itemB) => {
   return itemA.name.toLowerCase().localeCompare(itemB.name.toLowerCase())
 })
+
+/* 生成一个 Swift 类.
+* @item   一个 Schema 中的 Object 类型.
+*
+* @return 表示该类型的 Swift 字符串.
+*/
+function makeSwiftObjectClass(item){
+  let rtn = 
+
+`
+//
+//  ${item.name}.swift
+//  Luka
+//
+//  注意: 该文件,自动从 Graphql 的 Schema 中生成,请勿直接修改此文件.
+//
+//  Created by Luka研发 on ${currentDate()}.
+//  Copyright © 2017年 北京物灵智能科技有限公司. All rights reserved.
+//
+
+import Foundation
+import RealmSwift
+import ObjectMapper
+import ObjectMapper_Realm
+
+class ${item.name}: Object, Mappable {
+    // MARK: 属性字段.
+    ${item.fields.reduce((result, filed)=>{
+      return result + makeSwiftProperty(filed)
+    }, '')}
+
+    required convenience init?(map: Map) {
+        self.init()
+    }
+    
+    override class func primaryKey() -> String? {
+        return "id"
+    }
+    
+    // MARK: - Mappable
+    
+    public func mapping(map: Map) {
+        customType <- (map["type"], CustomMessageType.transform)
+        message <- map["value.message"]
+        id <- map["id"]
+        respToId <- map["resp_to_id"]
+        timestamp <- map["timestamp"]
+        version <- map["version"]
+        minTarget <- map["min_target_version"]
+        maxTarget <- map["max_target_version"]
+        fromId <- map["from_id"]
+    }
+
+    // MARK: 枚举转换, 扩展方法等,一定要以 extention 形式,写到单独文件中.因为此文件中的所有修改,都会被覆盖掉.
+}
+`
+
+return rtn
+}
+
+/* 生成一个 Swift 属性.
+* @field    一个 Schema field.
+*
+* @return   对应形式的 Swift 形式的 Property.
+*/
+function makeSwiftProperty(field) {
+// TODO: 不同 kind,需要不同的模板
+
+  let rtn = 
+`
+    /// ${field.description}
+    @objc dynamic var ${field.name}: ${field.type.name} = ""
+`
+
+  return rtn
+}
+
+/**
+ * 当前时间.
+ * 
+ * @return 返回一个类似 2017/4/13 的当前时间.
+ */
+function currentDate(){
+  const time = new Date()
+  return `${time.getFullYear()}/${time.getMonth()+1}/${time.getDate()}`
+}
+
+// TODO: 临时测试.
+let testItem = types[0]
+console.log(testItem.name)
+let x = makeSwiftObjectClass(testItem)
+console.log(x)
+// console.log(testItem.fields)

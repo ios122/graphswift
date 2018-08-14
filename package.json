@@ -21,7 +21,12 @@
     "url": "https://github.com/ios122/graphswift/issues"
   },
   "homepage": "https://github.com/ios122/graphswift#readme",
+  "engines": {
+    "node": ">=8.9.2"
+  },
   "dependencies": {
-    "commander": "^2.17.1"
+    "commander": "^2.17.1",
+    "fs-plus": "^3.0.2",
+    "load-json-file": "^5.0.0"
   }
 }

@@ -37,6 +37,29 @@ const propertyKinds = {
   }
 }
 
+/**
+ * 返回某个关键字的镜像名字.需要保证同一关键字,会返回同一镜像名字.
+ * @param someKeyword 某个可能的 swift 关键字.也可能只是一个普通的文字.
+ * 
+ * @return 非swift关键字,原样返回; swift关键字,适当转换后,返回.
+ */
+function mirrorNameForKeyword(someKeyword){
+  // swift 中的部分关键字.如果直接出现在类型名字或字段名中,需要转义处理下.
+  const swiftKeywords = [
+    'class', 'deinit', 'enum', 'extension', 'func', 'import', 'init', 'let', 'protocol', 'static', 'struct', 'subscript','typealias','var', 
+    'break','case', 'continue', 'default', 'do', 'else', 'fallthrough', 'if', 'in','for','return',	'switch', 'where',  'while',
+    'as','dynamicType','is','new','super','self',	'__COLUMN__','__FILE__','__FUNCTION__','__LINE__',
+    'precedence','associativity','didSet','willSet','infix','inout','mutating','nonmutating','none','operator','left','right','override','postfix','prefix','unowned','unowned(safe)','unowned(unsafe)','set','get',
+  ]
+
+  if(swiftKeywords.includes(someKeyword)){
+    return `${someKeyword}Property`
+  } else {
+    return someKeyword
+  }
+  
+}
+
 // 解析必须的参数.
 program
   .version(pjson.version)
@@ -97,11 +120,14 @@ types = types.filter((item)=>{
 * @return 表示该类型的 Swift 字符串.
 */
 function makeSwiftObjectClass(item){
+
+  let name = mirrorNameForKeyword(item.name)
+
   let rtn = 
 
 `
 //
-//  ${item.name}.swift
+//  ${name}.swift
 //
 //  注意: 该文件,自动从 Graphql 的 Schema 中生成,请勿直接修改此文件.
 //
@@ -113,7 +139,8 @@ import RealmSwift
 import ObjectMapper
 import ObjectMapper_Realm
 
-class ${item.name}: Object, Mappable {
+/// ${item.description}
+class ${name}: Object, Mappable {
     // MARK: 属性字段.
     ${item.fields.reduce((result, field)=>{
       return result + makeSwiftProperty(field)
@@ -145,7 +172,8 @@ function makeSwiftProperty(field) {
   let propertyInfo = whichKindProperty(field)
 
   switch (propertyInfo.kind){
-    case propertyKinds.BOOL.NON_OPTIONAL: {
+    // FIXME: Bool, Int, Float 目前只能统一把 NON_OPTIONAL 和 OPTIONAL 都按 NON_OPTIONAL 处理,以保证 Mapping 代码编译通过.
+    case propertyKinds.BOOL.NON_OPTIONAL, propertyKinds.BOOL.OPTIONAL: {
       let rtn = 
 `
     /// ${propertyInfo.description}
@@ -154,16 +182,7 @@ function makeSwiftProperty(field) {
       return rtn
     }
 
-    case propertyKinds.BOOL.OPTIONAL: {
-      let rtn = 
-`
-    /// ${propertyInfo.description}
-    let ${propertyInfo.name} = RealmOptional<${propertyInfo.type}>()
-`
-      return rtn
-    }
-
-    case propertyKinds.INT.NON_OPTIONAL: {
+    case propertyKinds.INT.NON_OPTIONAL, propertyKinds.INT.OPTIONAL: {
       let rtn = 
 `
     /// ${propertyInfo.description}
@@ -172,29 +191,11 @@ function makeSwiftProperty(field) {
       return rtn
     }
 
-    case propertyKinds.INT.OPTIONAL: {
-      let rtn = 
-`
-    /// ${propertyInfo.description}
-    let ${propertyInfo.name} = RealmOptional<${propertyInfo.type}>()
-`
-      return rtn
-    }
-
-    case propertyKinds.FLOAT.NON_OPTIONAL: {
+    case propertyKinds.FLOAT.NON_OPTIONAL, propertyKinds.FLOAT.OPTIONAL: {
       let rtn = 
 `
     /// ${propertyInfo.description}
     @objc dynamic var ${propertyInfo.name}: ${propertyInfo.type} = 0.0
-`
-      return rtn
-    }
-
-    case propertyKinds.FLOAT.OPTIONAL: {
-      let rtn = 
-`
-    /// ${propertyInfo.description}
-    let ${propertyInfo.name} = RealmOptional<${propertyInfo.type}>()
 `
       return rtn
     }
@@ -253,14 +254,14 @@ function makeSwiftProperty(field) {
  * @return  完整形式是:{name: "owner", kind: propertyKinds.OBJECT.OPTIONAL, type: "User", description:"管理员"}
  */
 function whichKindProperty(field){
-  let name = changeCase.camelCase(field.name)
+  let name = mirrorNameForKeyword(changeCase.camelCase(field.name))
   let description = field.description
 
   // 获取 List 中元素的类型.
   let elementTypeOfList = (typeInfo)=>{
      // "声明",不可为空的类型.
      switch (typeInfo.kind){
-      case 'SCALAR': {
+      case 'SCALAR', 'ENUM': {
         switch (typeInfo.name){
           case 'Boolean': {
             const type = 'Bool'
@@ -292,7 +293,7 @@ function whichKindProperty(field){
   if(field.type.kind === 'NON_NULL'){ // "声明",不可为空的类型.
     const currentLevelTypeInfo = field.type.ofType
     switch (currentLevelTypeInfo.kind){
-      case 'SCALAR': {
+      case 'SCALAR', 'ENUM': {
         switch (currentLevelTypeInfo.name){
           case 'Boolean': {
             const type = 'Bool'
@@ -476,7 +477,7 @@ function makeMappingInfo(fields) {
         ${fields.reduce((result, field)=>{
           return result + 
           `
-          ${changeCase.camelCase(field.name)} <- map["${field.name}"]
+          ${mirrorNameForKeyword(changeCase.camelCase(field.name))} <- map["${field.name}"]
           `
         }, "")}
     }

@@ -4,6 +4,7 @@ const program = require('commander')
 const pjson = require('./package.json')
 const fs = require('fs-plus')
 const loadJsonFile = require('load-json-file')
+const changeCase = require('change-case')
 
 // 解析必须的参数.
 program
@@ -27,7 +28,7 @@ jsonFiles.forEach((filepath)=>{
 })
 
 // 去重.根据目前需要,仅保留 Enum 和 Object.
-const supportTypeKinds = ["OBJECT", "ENUM"]
+const supportTypeKinds = ["OBJECT"]
 let typeNameDict = {}
 
 types = types.filter((item)=>{
@@ -85,30 +86,18 @@ class ${item.name}: Object, Mappable {
     ${item.fields.reduce((result, filed)=>{
       return result + makeSwiftProperty(filed)
     }, '')}
+    ${makeMappingInfo(item.fields)}
 
     required convenience init?(map: Map) {
         self.init()
     }
     
-    override class func primaryKey() -> String? {
-        return "id"
-    }
-    
-    // MARK: - Mappable
-    
-    public func mapping(map: Map) {
-        customType <- (map["type"], CustomMessageType.transform)
-        message <- map["value.message"]
-        id <- map["id"]
-        respToId <- map["resp_to_id"]
-        timestamp <- map["timestamp"]
-        version <- map["version"]
-        minTarget <- map["min_target_version"]
-        maxTarget <- map["max_target_version"]
-        fromId <- map["from_id"]
-    }
+    // MARK: primaryKey 请在 extention 中单独指定.
+    // override class func primaryKey() -> String? {
+    //     return "id"
+    // }
 
-    // MARK: 枚举转换, 扩展方法等,一定要以 extention 形式,写到单独文件中.因为此文件中的所有修改,都会被覆盖掉.
+    // MARK: 枚举转换, 扩展方法等,一定要以 extention 形式,写到单独文件中.枚举类型,直接用 Apollo 生成的全局 Enum 类型即可.
 }
 `
 
@@ -140,6 +129,26 @@ function makeSwiftProperty(field) {
 function currentDate(){
   const time = new Date()
   return `${time.getFullYear()}/${time.getMonth()+1}/${time.getDate()}`
+}
+
+/**
+ * 生成 Mapping 信息.
+ * @param fields graphql 的 type 的完整字段信息.
+ */
+function makeMappingInfo(fields) {
+  let rtn = 
+`   // MARK: - Mappable
+        
+    public func mapping(map: Map) {
+        ${fields.reduce((result, field)=>{
+          return result + 
+          `
+          ${changeCase.camelCase(field.name)} <- map["${field.name}"]
+          `
+        }, "")}
+    }
+`
+return rtn
 }
 
 // TODO: 临时测试.

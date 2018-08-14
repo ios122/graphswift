@@ -25,6 +25,7 @@
     "node": ">=8.9.2"
   },
   "dependencies": {
+    "change-case": "^3.0.2",
     "commander": "^2.17.1",
     "fs-plus": "^3.0.2",
     "load-json-file": "^5.0.0"

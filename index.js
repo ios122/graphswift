@@ -233,7 +233,7 @@ function makeSwiftProperty(field) {
       let rtn = 
 `
     ${makeCommentInfo(propertyInfo.description)}
-    let ${propertyInfo.name} = List<${propertyInfo.type}>()
+    var ${propertyInfo.name} = List<${propertyInfo.type}>()
 `
       return rtn
     }
@@ -263,6 +263,7 @@ function whichKindProperty(field){
   let elementTypeOfList = (typeInfo)=>{
      // "声明",不可为空的类型.
      switch (typeInfo.kind){
+      case 'UNION':
       case 'SCALAR':
       case 'ENUM': {
         switch (typeInfo.name){
@@ -296,6 +297,7 @@ function whichKindProperty(field){
   if(field.type.kind === 'NON_NULL'){ // "声明",不可为空的类型.
     const currentLevelTypeInfo = field.type.ofType
     switch (currentLevelTypeInfo.kind){
+      case 'UNION':
       case 'SCALAR':
       case 'ENUM': {
         switch (currentLevelTypeInfo.name){
@@ -378,7 +380,9 @@ function whichKindProperty(field){
     const currentLevelTypeInfo = field.type
 
     switch (currentLevelTypeInfo.kind){
-      case 'SCALAR': {
+      case 'UNION': // TODO: FeedContent Union 这个类型,暂时不处理.等到使用时, 结合 Apollo 生成的值, 再具体确定下生成的规则
+      case 'SCALAR':
+      case 'ENUM':  {
         switch (currentLevelTypeInfo.name){
           case 'Boolean': {
             const type = 'Bool'
@@ -479,10 +483,15 @@ function makeMappingInfo(fields) {
         
     public func mapping(map: Map) {
         ${fields.reduce((result, field)=>{
-          return result + 
+          let propertyInfo = whichKindProperty(field)
+
+          // TODO: List,可能还要特殊处理.先验证下最新版 Realm 中是否已经可以自动解析.
+          result += 
           `
           ${mirrorNameForKeyword(changeCase.camelCase(field.name))} <- map["${field.name}"]
           `
+
+          return result
         }, "")}
     }
 `
@@ -513,18 +522,11 @@ function makeCommentInfo(desc){
   }
 }
 
-// TODO: 临时测试.
 types.forEach((item)=>{
 
-  let x = makeSwiftObjectClass(item)
+  let content = makeSwiftObjectClass(item)
   let targetSwiftFilePath = `${outputDir}${item.name}.swift`
-  // console.log(x)
   fs.writeFileSync(
-    targetSwiftFilePath, x
+    targetSwiftFilePath, content
   )
 })
-
-// let testItem = types[0]
-// let x = makeSwiftObjectClass(testItem)
-// console.log(x)
-// console.log(testItem.fields)

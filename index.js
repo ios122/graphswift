@@ -125,8 +125,7 @@ function makeSwiftObjectClass(item){
 
   let rtn = 
 
-`
-//
+`//
 //  ${name}.swift
 //
 //  注意: 该文件,自动从 Graphql 的 Schema 中生成,请勿直接修改此文件.
@@ -142,7 +141,7 @@ ${makeCommentInfo(item.description)}
 class ${name}: Object, Mappable {
     // MARK: 属性字段.
     ${item.fields.reduce((result, field)=>{
-      return result + makeSwiftProperty(field)
+      return result + makeSwiftProperty(field) + `\n`
     }, '')}
     ${makeMappingInfo(item.fields)}
 
@@ -175,75 +174,68 @@ function makeSwiftProperty(field) {
     case propertyKinds.BOOL.NON_OPTIONAL:
     case propertyKinds.BOOL.OPTIONAL: {
       let rtn = 
-`
-    ${makeCommentInfo(propertyInfo.description)}
-    @objc dynamic var ${propertyInfo.name}: ${propertyInfo.type} = false
-`
+
+    `${makeCommentInfo(propertyInfo.description)}
+    @objc dynamic var ${propertyInfo.name}: ${propertyInfo.type} = false`
       return rtn
     }
 
     case propertyKinds.INT.NON_OPTIONAL:
     case propertyKinds.INT.OPTIONAL: {
       let rtn = 
-`
-    ${makeCommentInfo(propertyInfo.description)}
-    @objc dynamic var ${propertyInfo.name}: ${propertyInfo.type} = 0
-`
+
+    `${makeCommentInfo(propertyInfo.description)}
+    @objc dynamic var ${propertyInfo.name}: ${propertyInfo.type} = 0`
       return rtn
     }
 
     case propertyKinds.FLOAT.NON_OPTIONAL: 
     case propertyKinds.FLOAT.OPTIONAL: {
       let rtn = 
-`
-    ${makeCommentInfo(propertyInfo.description)}
-    @objc dynamic var ${propertyInfo.name}: ${propertyInfo.type} = 0.0
-`
+
+    `${makeCommentInfo(propertyInfo.description)}
+    @objc dynamic var ${propertyInfo.name}: ${propertyInfo.type} = 0.0`
       return rtn
     }
 
     case propertyKinds.STRING.NON_OPTIONAL: {
       let rtn = 
-`
-    ${makeCommentInfo(propertyInfo.description)}
-    @objc dynamic var ${propertyInfo.name} = ""
-`
+
+    `${makeCommentInfo(propertyInfo.description)}
+    @objc dynamic var ${propertyInfo.name} = ""`
       return rtn
     }
 
     case propertyKinds.STRING.OPTIONAL: {
       let rtn = 
-`
-    ${makeCommentInfo(propertyInfo.description)}
-    @objc dynamic var ${propertyInfo.name}: String? = nil
-`
+
+    `${makeCommentInfo(propertyInfo.description)}
+    @objc dynamic var ${propertyInfo.name}: String?`
       return rtn
     }
 
     case propertyKinds.OBJECT.OPTIONAL: {
       let rtn = 
-`
-    ${makeCommentInfo(propertyInfo.description)}
-    @objc dynamic var ${propertyInfo.name}: ${propertyInfo.type}? = nil
-`
+
+    `${makeCommentInfo(propertyInfo.description)}
+    @objc dynamic var ${propertyInfo.name}: ${propertyInfo.type}?`
       return rtn
     }
 
     case propertyKinds.LIST.NON_OPTIONAL: {
       let rtn = 
-`
-    ${makeCommentInfo(propertyInfo.description)}
-    var ${propertyInfo.name} = List<${propertyInfo.type}>()
-`
+
+    `${makeCommentInfo(propertyInfo.description)}
+    var ${propertyInfo.name} = List<${propertyInfo.type}>()`
       return rtn
     }
 
     default: {
       let rtn = 
-`
-    ${makeCommentInfo(propertyInfo.description)}
-    @objc dynamic var ${propertyInfo.name}: ${propertyInfo.type}? = nil
-`
+
+    `${makeCommentInfo(propertyInfo.description)}
+    @objc dynamic var ${propertyInfo.name}: ${propertyInfo.type}?`
+
     return rtn
     }
   }
@@ -478,8 +470,8 @@ function currentDate(){
  */
 function makeMappingInfo(fields) {
    let rtn = 
-`   
-    // MARK: - Mappable
+  
+ `// MARK: - Mappable
         
     public func mapping(map: Map) {
         ${fields.reduce((result, field)=>{
@@ -488,13 +480,11 @@ function makeMappingInfo(fields) {
           // TODO: List,可能还要特殊处理.先验证下最新版 Realm 中是否已经可以自动解析.
           result += 
           `
-          ${mirrorNameForKeyword(changeCase.camelCase(field.name))} <- map["${field.name}"]
-          `
+          ${mirrorNameForKeyword(changeCase.camelCase(field.name))} <- map["${field.name}"]`
 
           return result
         }, "")}
-    }
-`
+    }`
 return rtn
 }
 

@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 
 let program = require('commander')
- 
+let pjson = require('./package.json')
 
 program
-  .version('0.1.0')  // TODO: 自动解析 module.json 中的版本
+  .version(pjson.version)
   .option('-i, --input <path>', 'schema 源文件 所在目录')
   .option('-o, --output <path>', 'swift 文件 输出目录')
   .parse(process.argv)

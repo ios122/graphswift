@@ -138,8 +138,7 @@ import Foundation
 import RealmSwift
 import ObjectMapper
 import ObjectMapper_Realm
-
-/// ${item.description}
+${makeCommentInfo(item.description)}
 class ${name}: Object, Mappable {
     // MARK: 属性字段.
     ${item.fields.reduce((result, field)=>{
@@ -177,7 +176,7 @@ function makeSwiftProperty(field) {
     case propertyKinds.BOOL.OPTIONAL: {
       let rtn = 
 `
-    /// ${propertyInfo.description}
+    ${makeCommentInfo(propertyInfo.description)}
     @objc dynamic var ${propertyInfo.name}: ${propertyInfo.type} = false
 `
       return rtn
@@ -187,7 +186,7 @@ function makeSwiftProperty(field) {
     case propertyKinds.INT.OPTIONAL: {
       let rtn = 
 `
-    /// ${propertyInfo.description}
+    ${makeCommentInfo(propertyInfo.description)}
     @objc dynamic var ${propertyInfo.name}: ${propertyInfo.type} = 0
 `
       return rtn
@@ -197,7 +196,7 @@ function makeSwiftProperty(field) {
     case propertyKinds.FLOAT.OPTIONAL: {
       let rtn = 
 `
-    /// ${propertyInfo.description}
+    ${makeCommentInfo(propertyInfo.description)}
     @objc dynamic var ${propertyInfo.name}: ${propertyInfo.type} = 0.0
 `
       return rtn
@@ -206,7 +205,7 @@ function makeSwiftProperty(field) {
     case propertyKinds.STRING.NON_OPTIONAL: {
       let rtn = 
 `
-    /// ${propertyInfo.description}
+    ${makeCommentInfo(propertyInfo.description)}
     @objc dynamic var ${propertyInfo.name} = ""
 `
       return rtn
@@ -215,7 +214,7 @@ function makeSwiftProperty(field) {
     case propertyKinds.STRING.OPTIONAL: {
       let rtn = 
 `
-    /// ${propertyInfo.description}
+    ${makeCommentInfo(propertyInfo.description)}
     @objc dynamic var ${propertyInfo.name}: String? = nil
 `
       return rtn
@@ -224,7 +223,7 @@ function makeSwiftProperty(field) {
     case propertyKinds.OBJECT.OPTIONAL: {
       let rtn = 
 `
-    /// ${propertyInfo.description}
+    ${makeCommentInfo(propertyInfo.description)}
     @objc dynamic var ${propertyInfo.name}: ${propertyInfo.type}? = nil
 `
       return rtn
@@ -233,7 +232,7 @@ function makeSwiftProperty(field) {
     case propertyKinds.LIST.NON_OPTIONAL: {
       let rtn = 
 `
-    /// ${propertyInfo.description}
+    ${makeCommentInfo(propertyInfo.description)}
     let ${propertyInfo.name} = List<${propertyInfo.type}>()
 `
       return rtn
@@ -242,7 +241,7 @@ function makeSwiftProperty(field) {
     default: {
       let rtn = 
 `
-    /// ${propertyInfo.description}
+    ${makeCommentInfo(propertyInfo.description)}
     @objc dynamic var ${propertyInfo.name}: ${propertyInfo.type}? = nil
 `
     return rtn
@@ -488,6 +487,30 @@ function makeMappingInfo(fields) {
     }
 `
 return rtn
+}
+
+/**
+ * 生成注释信息. 有可能是多行.
+ * @param  desc 注释
+ */
+function makeCommentInfo(desc){
+  if(desc === null){
+    return ""
+  }
+
+  const descArray = desc.split("\n")
+
+  if(1 === descArray.length){
+    let rtn =  
+    `
+    /// ${desc}`
+    return rtn
+
+  }else{
+    return descArray.reduce((result, item)=>{
+      return result + makeCommentInfo(item)
+    }, "")
+  }
 }
 
 // TODO: 临时测试.

@@ -173,7 +173,8 @@ function makeSwiftProperty(field) {
 
   switch (propertyInfo.kind){
     // FIXME: Bool, Int, Float 目前只能统一把 NON_OPTIONAL 和 OPTIONAL 都按 NON_OPTIONAL 处理,以保证 Mapping 代码编译通过.
-    case propertyKinds.BOOL.NON_OPTIONAL, propertyKinds.BOOL.OPTIONAL: {
+    case propertyKinds.BOOL.NON_OPTIONAL:
+    case propertyKinds.BOOL.OPTIONAL: {
       let rtn = 
 `
     /// ${propertyInfo.description}
@@ -182,7 +183,8 @@ function makeSwiftProperty(field) {
       return rtn
     }
 
-    case propertyKinds.INT.NON_OPTIONAL, propertyKinds.INT.OPTIONAL: {
+    case propertyKinds.INT.NON_OPTIONAL:
+    case propertyKinds.INT.OPTIONAL: {
       let rtn = 
 `
     /// ${propertyInfo.description}
@@ -191,7 +193,8 @@ function makeSwiftProperty(field) {
       return rtn
     }
 
-    case propertyKinds.FLOAT.NON_OPTIONAL, propertyKinds.FLOAT.OPTIONAL: {
+    case propertyKinds.FLOAT.NON_OPTIONAL: 
+    case propertyKinds.FLOAT.OPTIONAL: {
       let rtn = 
 `
     /// ${propertyInfo.description}
@@ -261,7 +264,8 @@ function whichKindProperty(field){
   let elementTypeOfList = (typeInfo)=>{
      // "声明",不可为空的类型.
      switch (typeInfo.kind){
-      case 'SCALAR', 'ENUM': {
+      case 'SCALAR':
+      case 'ENUM': {
         switch (typeInfo.name){
           case 'Boolean': {
             const type = 'Bool'
@@ -293,7 +297,8 @@ function whichKindProperty(field){
   if(field.type.kind === 'NON_NULL'){ // "声明",不可为空的类型.
     const currentLevelTypeInfo = field.type.ofType
     switch (currentLevelTypeInfo.kind){
-      case 'SCALAR', 'ENUM': {
+      case 'SCALAR':
+      case 'ENUM': {
         switch (currentLevelTypeInfo.name){
           case 'Boolean': {
             const type = 'Bool'
@@ -490,7 +495,7 @@ types.forEach((item)=>{
 
   let x = makeSwiftObjectClass(item)
   let targetSwiftFilePath = `${outputDir}${item.name}.swift`
-  console.log(x)
+  // console.log(x)
   fs.writeFileSync(
     targetSwiftFilePath, x
   )

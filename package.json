@@ -1,0 +1,24 @@
+{
+  "name": "graphswift",
+  "version": "0.1.0",
+  "description": "从 Graphql Schema 生成对应的 Swift 类",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ios122/graphswift.git"
+  },
+  "keywords": [
+    "graphql",
+    "swift",
+    "schema"
+  ],
+  "author": "颜风",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ios122/graphswift/issues"
+  },
+  "homepage": "https://github.com/ios122/graphswift#readme"
+}

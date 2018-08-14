@@ -44,6 +44,9 @@ program
   .option('-o, --output <path>', 'swift 文件 输出目录')
   .parse(process.argv)
 
+const inputDir = program.input
+const outputDir = program.output
+
 // 获取所有 Schema 的路径.
 const jsonFiles = fs.listSync(program.input, [".json"])
 
@@ -218,7 +221,7 @@ function makeSwiftProperty(field) {
       let rtn = 
 `
     /// ${propertyInfo.description}
-    @objc dynamic var ${propertyInfo.name}: ${propertyInfo.type}? = 0.0
+    @objc dynamic var ${propertyInfo.name}: ${propertyInfo.type}? = nil
 `
       return rtn
     }
@@ -250,7 +253,7 @@ function makeSwiftProperty(field) {
  * @return  完整形式是:{name: "owner", kind: propertyKinds.OBJECT.OPTIONAL, type: "User", description:"管理员"}
  */
 function whichKindProperty(field){
-  let name = field.name
+  let name = changeCase.camelCase(field.name)
   let description = field.description
 
   // 获取 List 中元素的类型.
@@ -482,7 +485,17 @@ return rtn
 }
 
 // TODO: 临时测试.
-let testItem = types[0]
-let x = makeSwiftObjectClass(testItem)
-console.log(x)
+types.forEach((item)=>{
+
+  let x = makeSwiftObjectClass(item)
+  let targetSwiftFilePath = `${outputDir}${item.name}.swift`
+  console.log(x)
+  fs.writeFileSync(
+    targetSwiftFilePath, x
+  )
+})
+
+// let testItem = types[0]
+// let x = makeSwiftObjectClass(testItem)
+// console.log(x)
 // console.log(testItem.fields)

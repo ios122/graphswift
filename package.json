@@ -20,5 +20,8 @@
   "bugs": {
     "url": "https://github.com/ios122/graphswift/issues"
   },
-  "homepage": "https://github.com/ios122/graphswift#readme"
+  "homepage": "https://github.com/ios122/graphswift#readme",
+  "dependencies": {
+    "commander": "^2.17.1"
+  }
 }
